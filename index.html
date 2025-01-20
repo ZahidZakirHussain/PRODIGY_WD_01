@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic Tac Toe</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            color: #333;
+        }
+        #game {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-gap: 5px;
+            justify-content: center;
+        }
+        .cell {
+            width: 100px;
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #333;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            background-color: #fff;
+            transition: background-color 0.3s;
+        }
+        .cell:hover {
+            background-color: #f0f8ff;
+        }
+        .cell.taken {
+            pointer-events: none;
+            background-color: #d3d3d3;
+        }
+        #status {
+            margin-top: 20px;
+            font-size: 20px;
+            color: #555;
+        }
+        #mode-select {
+            margin-bottom: 20px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Tic Tac Toe</h1>
+    <div id="mode-select">
+        <button onclick="startGame('friend')">Play with Friend</button>
+        <button onclick="startGame('computer')">Play with Computer</button>
+    </div>
+    <div id="game"></div>
+    <div id="status"></div>
+
+    <script>
+        const gameContainer = document.getElementById('game');
+        const statusDiv = document.getElementById('status');
+
+        let currentPlayer = 'X';
+        let board = Array(9).fill(null);
+        let gameActive = false;
+        let mode = '';
+
+        
+        function startGame(selectedMode) {
+            mode = selectedMode;
+            currentPlayer = 'X';
+            board = Array(9).fill(null);
+            gameActive = true;
+            initializeGame();
+            updateStatus(`Player ${currentPlayer}'s turn`);
+        }
+
+        
+        function initializeGame() {
+            gameContainer.innerHTML = '';
+            for (let i = 0; i < 9; i++) {
+                const cell = document.createElement('div');
+                cell.classList.add('cell');
+                cell.dataset.index = i;
+                cell.addEventListener('click', handleCellClick);
+                gameContainer.appendChild(cell);
+            }
+        }
+
+        
+        function handleCellClick(event) {
+            const cell = event.target;
+            const index = cell.dataset.index;
+
+            if (!gameActive || board[index]) return;
+
+            board[index] = currentPlayer;
+            cell.textContent = currentPlayer;
+            cell.classList.add('taken');
+
+            if (checkWin()) {
+                updateStatus(`Player ${currentPlayer} wins!`);
+                gameActive = false;
+            } else if (board.every(cell => cell !== null)) {
+                updateStatus('It\'s a draw!');
+                gameActive = false;
+            } else {
+                currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+                updateStatus(`Player ${currentPlayer}'s turn`);
+
+                if (mode === 'computer' && currentPlayer === 'O' && gameActive) {
+                    computerMove();
+                }
+            }
+        }
+
+        
+        function computerMove() {
+            const emptyCells = board.map((val, idx) => val === null ? idx : null).filter(val => val !== null);
+            const randomIndex = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+
+            if (randomIndex !== undefined) {
+                const cell = document.querySelector(`.cell[data-index='${randomIndex}']`);
+                board[randomIndex] = currentPlayer;
+                cell.textContent = currentPlayer;
+                cell.classList.add('taken');
+
+                if (checkWin()) {
+                    updateStatus(`Player ${currentPlayer} wins!`);
+                    gameActive = false;
+                } else if (board.every(cell => cell !== null)) {
+                    updateStatus('It\'s a draw!');
+                    gameActive = false;
+                } else {
+                    currentPlayer = 'X';
+                    updateStatus(`Player ${currentPlayer}'s turn`);
+                }
+            }
+        }
+
+        
+        function checkWin() {
+            const winPatterns = [
+                [0, 1, 2], [3, 4, 5], [6, 7, 8],
+                [0, 3, 6], [1, 4, 7], [2, 5, 8], 
+                [0, 4, 8], [2, 4, 6]             
+            ];
+
+            return winPatterns.some(pattern => {
+                const [a, b, c] = pattern;
+                return board[a] && board[a] === board[b] && board[a] === board[c];
+            });
+        }
+
+        
+        function updateStatus(message) {
+            statusDiv.textContent = message;
+        }
+    </script>
+</body>
+</html>
